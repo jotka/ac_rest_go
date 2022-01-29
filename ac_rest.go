@@ -1,14 +1,12 @@
 package main
 
 import (
+	"ac_rest_go/in"
+	"ac_rest_go/out"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
-
-type Request struct {
-	Value string `form:"value" json:"value" xml:"value"  binding:"required"`
-}
 
 type _switch struct {
 	fanmode fanmode
@@ -25,6 +23,7 @@ type Login struct {
 }
 
 func main() {
+	var currentStatus = make(map[string]out.State)
 	fmt.Println("ac_rest_go started.")
 
 	router := gin.Default()
@@ -38,7 +37,7 @@ func main() {
 }
 
 func power(c *gin.Context) {
-	var request Request
+	var request in.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -49,7 +48,7 @@ func power(c *gin.Context) {
 }
 
 func ac_mode(c *gin.Context) {
-	var request Request
+	var request in.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
