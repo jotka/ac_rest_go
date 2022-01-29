@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-type req struct {
-	value string
+type Request struct {
+	Value string `form:"value" json:"value" xml:"value"  binding:"required"`
 }
 
 type _switch struct {
@@ -17,6 +17,11 @@ type _switch struct {
 
 type fanmode struct {
 	value float32
+}
+
+type Login struct {
+	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
+	Password string `form:"password" json:"password" xml:"password" binding:"required"`
 }
 
 func main() {
@@ -33,13 +38,13 @@ func main() {
 }
 
 func power(c *gin.Context) {
-	device := c.Param("device")
-	var reqBody req
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
+	var request Request
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println("/power for device %s: %s%n", device, reqBody.value)
+	device := c.Param("device")
+	fmt.Printf("/power for device %s: %s\n", device, request.Value)
 	c.JSON(http.StatusOK, gin.H{"status": "power"})
 }
 
