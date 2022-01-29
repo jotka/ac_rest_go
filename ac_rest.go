@@ -48,6 +48,13 @@ func power(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "power"})
 }
 
-func ac_mode(context *gin.Context) {
-
+func ac_mode(c *gin.Context) {
+	var request Request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	device := c.Param("device")
+	fmt.Printf("/ac_mode for device %s: %s\n", device, request.Value)
+	c.JSON(http.StatusOK, gin.H{"status": "power"})
 }
