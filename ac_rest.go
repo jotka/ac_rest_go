@@ -99,7 +99,7 @@ func power(c *gin.Context) {
 	executeCommand(device, "switch", request.Value, nil)
 	state := getCurrentStatus(device)
 	state.Components.Main.Switch.Switch.Value = request.Value
-
+	currentStatus[device] = state
 	c.JSON(http.StatusOK, state)
 }
 
@@ -115,6 +115,7 @@ func ac_mode(c *gin.Context) {
 	executeCommand(device, "airConditionerMode", "setAirConditionerMode", request.Value)
 	state := getCurrentStatus(device)
 	state.Components.Main.AirConditionerMode.AirConditionerMode.Value = request.Value
+	currentStatus[device] = state
 	c.JSON(http.StatusOK, state)
 }
 
@@ -130,6 +131,7 @@ func fan_mode(c *gin.Context) {
 	executeCommand(device, "airConditionerFanMode", "setFanMode", request.Value)
 	state := getCurrentStatus(device)
 	state.Components.Main.AirConditionerFanMode.FanMode.Value = request.Value
+	currentStatus[device] = state
 	c.JSON(http.StatusOK, state)
 }
 
@@ -145,6 +147,7 @@ func fan_oscillation_mode(c *gin.Context) {
 	executeCommand(device, "fanOscillationMode", "setFanOscillationMode", request.Value)
 	state := getCurrentStatus(device)
 	state.Components.Main.FanOscillationMode.FanOscillationMode.Value = request.Value
+	currentStatus[device] = state
 	c.JSON(http.StatusOK, state)
 }
 
@@ -161,6 +164,7 @@ func volume(c *gin.Context) {
 	executeCommand(device, "audioVolume", "setVolume", volume)
 	state := getCurrentStatus(device)
 	state.Components.Main.AudioVolume.Volume.Value = int(volume)
+	currentStatus[device] = state
 	c.JSON(http.StatusOK, state)
 }
 
@@ -176,6 +180,7 @@ func preset(c *gin.Context) {
 	executeCommand(device, "custom.airConditionerOptionalMode", "setAcOptionalMode", request.Value)
 	state := getCurrentStatus(device)
 	state.Components.Main.CustomAirConditionerOptionalMode.AcOptionalMode.Value = request.Value
+	currentStatus[device] = state
 	c.JSON(http.StatusOK, state)
 }
 
@@ -192,6 +197,7 @@ func temperature(c *gin.Context) {
 	executeCommand(device, "thermostatCoolingSetpoint", "setCoolingSetpoint", temp)
 	state := getCurrentStatus(device)
 	state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = temp
+	currentStatus[device] = state
 	c.JSON(http.StatusOK, state)
 }
 
