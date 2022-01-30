@@ -16,21 +16,7 @@ import (
 	"time"
 )
 
-type _switch struct {
-	fanmode fanmode
-	value   string
-}
-
-type fanmode struct {
-	value float32
-}
-
-type Login struct {
-	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
-	Password string `form:"password" json:"password" xml:"password" binding:"required"`
-}
-
-var currentStatus map[string]in.State
+var currentStatus map[string]in.State //state cache
 
 var apiUrl string
 var apiToken string
@@ -201,6 +187,9 @@ func temperature(c *gin.Context) {
 	c.JSON(http.StatusOK, state)
 }
 
+/**
+ * get the device status from cache. If not found, refresh from Samsung SmartThings cloud
+ */
 func getCurrentStatus(device string) in.State {
 	if deviceStatus, found := currentStatus[device]; found {
 		fmt.Printf("State for %s, found in cache.\n", device)
@@ -212,16 +201,16 @@ func getCurrentStatus(device string) in.State {
 }
 
 /**
-Updates the device state from cloud and keeps it in cache
-*/
+* Updates the device state from cloud and keeps it in cache
+ */
 func updateStatusFromCloud(device string) in.State {
 	currentStatus[device] = *getStateFromCloud(device)
 	return currentStatus[device]
 }
 
 /**
-gets the device state from Samsung cloud API
-*/
+* GETs the device state from Samsung SmartThings cloud API
+ */
 func getStateFromCloud(device string) *in.State {
 	req, err := http.NewRequest("GET", apiUrl+device+"/status", nil)
 	req.Header.Add("Authorization", apiToken)
@@ -243,6 +232,9 @@ func getStateFromCloud(device string) *in.State {
 	return samsungResponse
 }
 
+/**
+ * POST a command do Samsung SmartThings cloud
+ */
 func executeCommand(device string, capability string, command string, param interface{}) {
 	cmd := out.Command{Component: "main", Capability: capability, Command: command}
 	if param != nil {
