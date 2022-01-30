@@ -114,7 +114,7 @@ func ac_mode(c *gin.Context) {
 	fmt.Printf("/ac_mode for device %s: %s\n", device, request.Value)
 	executeCommand(device, "airConditionerMode", "setAirConditionerMode", request.Value)
 	state := getCurrentStatus(device)
-	state.Components.Main.AirConditionerMode.Value = request.Value
+	state.Components.Main.AirConditionerMode.AirConditionerMode.Value = request.Value
 	c.JSON(http.StatusOK, state)
 }
 
