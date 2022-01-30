@@ -30,11 +30,11 @@ func main() {
 	currentStatus = make(map[string]in.State)
 
 	//update all periodically
-	cron := cron.New()
-	cron.AddFunc("*/60 * * * * *", func() {
+	c := cron.New()
+	_ = c.AddFunc("*/60 * * * * *", func() {
 		updateAllFromCloud(devices)
 	})
-	cron.Start()
+	c.Start()
 
 	fmt.Printf("ac_rest_go started with API URL %s\n", apiUrl)
 	updateAllFromCloud(devices)
