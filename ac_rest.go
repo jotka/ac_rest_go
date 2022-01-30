@@ -197,6 +197,7 @@ func temperature(c *gin.Context) {
 
 func getCurrentStatus(device string) in.State {
 	if deviceStatus, found := currentStatus[device]; found {
+		fmt.Printf("State for %s, found in cache.\n", device)
 		return deviceStatus
 	} else {
 		fmt.Printf("No current state for %s, updating from the cloud.\n", device)
