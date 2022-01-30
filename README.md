@@ -75,5 +75,5 @@ See `ac-rest.yaml` as an example configuration file for https://github.com/SebuZ
 
 ## building locally
 
-env GOOS=linux GOARCH=amd64 go build -v -o build/package/ac-rest
+go build -v -o build/package/ac-rest
 
