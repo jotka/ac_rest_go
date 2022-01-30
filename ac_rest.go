@@ -2,6 +2,8 @@ package main
 
 import (
 	"ac_rest_go/in"
+	"ac_rest_go/out"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -9,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -54,6 +57,12 @@ func main() {
 	router.GET("/device/:device/status", status)
 	router.POST("/device/:device/power", power)
 	router.POST("/device/:device/ac_mode", ac_mode)
+	router.POST("/device/:device/fan_mode", fan_mode)
+	router.POST("/device/:device/fan_oscillation_mode", fan_oscillation_mode)
+	router.POST("/device/:device/beep", beep)
+	router.POST("/device/:device/preset", preset)
+	router.POST("/device/:device/temperature", temperature)
+
 	router.GET("/health", func(c *gin.Context) {
 		c.String(200, "alive")
 	})
@@ -87,7 +96,9 @@ func power(c *gin.Context) {
 	}
 	device := c.Param("device")
 	fmt.Printf("/power for device %s: %s\n", device, request.Value)
+	executeCommand(device, "switch", request.Value, nil)
 	state := getCurrentStatus(device)
+	state.Components.Main.Switch.Switch.Value = request.Value
 
 	c.JSON(http.StatusOK, state)
 }
@@ -101,7 +112,87 @@ func ac_mode(c *gin.Context) {
 	}
 	device := c.Param("device")
 	fmt.Printf("/ac_mode for device %s: %s\n", device, request.Value)
-	c.JSON(http.StatusOK, gin.H{"status": "power"})
+	executeCommand(device, "airConditionerMode", "setAirConditionerMode", request.Value)
+	state := getCurrentStatus(device)
+	state.Components.Main.AirConditionerMode.Value = request.Value
+	c.JSON(http.StatusOK, state)
+}
+
+//POST /fan_mode
+func fan_mode(c *gin.Context) {
+	var request in.Request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	device := c.Param("device")
+	fmt.Printf("/fan_mode for device %s: %s\n", device, request.Value)
+	executeCommand(device, "airConditionerFanMode", "setFanMode", request.Value)
+	state := getCurrentStatus(device)
+	state.Components.Main.AirConditionerFanMode.FanMode.Value = request.Value
+	c.JSON(http.StatusOK, state)
+}
+
+//POST /fan_oscillation_mode
+func fan_oscillation_mode(c *gin.Context) {
+	var request in.Request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	device := c.Param("device")
+	fmt.Printf("/fan_oscillation_mode for device %s: %s\n", device, request.Value)
+	executeCommand(device, "fanOscillationMode", "setFanOscillationMode", request.Value)
+	state := getCurrentStatus(device)
+	state.Components.Main.FanOscillationMode.FanOscillationMode.Value = request.Value
+	c.JSON(http.StatusOK, state)
+}
+
+//POST /beep
+func beep(c *gin.Context) {
+	var request in.Request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	device := c.Param("device")
+	fmt.Printf("/beep for device %s: %s\n", device, request.Value)
+	volume, _ := strconv.ParseInt(request.Value, 0, 64)
+	executeCommand(device, "audioVolume", "setVolume", volume)
+	state := getCurrentStatus(device)
+	state.Components.Main.AudioVolume.Volume.Value = int(volume)
+	c.JSON(http.StatusOK, state)
+}
+
+//POST /preset
+func preset(c *gin.Context) {
+	var request in.Request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	device := c.Param("device")
+	fmt.Printf("/preset for device %s: %s\n", device, request.Value)
+	executeCommand(device, "custom.airConditionerOptionalMode", "setAcOptionalMode", request.Value)
+	state := getCurrentStatus(device)
+	state.Components.Main.CustomAirConditionerOptionalMode.AcOptionalMode.Value = request.Value
+	c.JSON(http.StatusOK, state)
+}
+
+//POST /temperature
+func temperature(c *gin.Context) {
+	var request in.Request
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	device := c.Param("device")
+	fmt.Printf("/preset for device %s: %s\n", device, request.Value)
+	temp, _ := strconv.ParseFloat(request.Value, 64)
+	executeCommand(device, "thermostatCoolingSetpoint", "setCoolingSetpoint", temp)
+	state := getCurrentStatus(device)
+	state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = temp
+	c.JSON(http.StatusOK, state)
 }
 
 func getCurrentStatus(device string) in.State {
@@ -125,7 +216,7 @@ func updateStatusFromCloud(device string) in.State {
 gets the device state from Samsung cloud API
 */
 func getStateFromCloud(device string) *in.State {
-	req, err := http.NewRequest("GET", apiUrl+device, nil)
+	req, err := http.NewRequest("GET", apiUrl+device+"/status", nil)
 	req.Header.Add("Authorization", apiToken)
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := httpClient.Do(req)
@@ -141,6 +232,32 @@ func getStateFromCloud(device string) *in.State {
 			err = fmt.Errorf("%w ~ error near '%s' (offset %d)", err, problemPart, jsonErr.Offset)
 		}
 	}
-	fmt.Printf("Device state updated from cloud: %s (%s, %s)\n", device, samsungResponse.DeviceTypeName, samsungResponse.Label)
+	fmt.Printf("Device state updated from cloud: %s\n", device)
 	return samsungResponse
+}
+
+func executeCommand(device string, capability string, command string, param interface{}) {
+	cmd := out.Command{Component: "main", Capability: capability, Command: command}
+	if param != nil {
+		cmd.Arguments = append(cmd.Arguments, param)
+	}
+	var samsungCmd out.SamsungCommand
+	samsungCmd.Commands = append(samsungCmd.Commands, cmd)
+	jsonValue, _ := json.Marshal(samsungCmd)
+	req, err := http.NewRequest("POST", apiUrl+device+"/commands", bytes.NewBuffer(jsonValue))
+	req.Header.Add("Authorization", apiToken)
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		fmt.Printf("No response from request %s\n", apiUrl+device)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	samsungResponse := new(in.SamsungResponse)
+	if err := json.Unmarshal(body, &samsungResponse); err != nil {
+		if jsonErr, ok := err.(*json.SyntaxError); ok {
+			problemPart := body[jsonErr.Offset-10 : jsonErr.Offset+10]
+			err = fmt.Errorf("%w ~ error near '%s' (offset %d)", err, problemPart, jsonErr.Offset)
+		}
+	}
 }
