@@ -33,7 +33,7 @@ device:
         'Szybko': { value : 'speed', connection: { params: { json: {"value":"speed"} } } }
         'WindFree': { value : 'windFree', connection: { params: { json: {"value":"windFree"} } } }
         'WindFree-sen': { value : 'windFreeSleep', connection: { params: { json: {"value":"windFreeSleep"} } } }
-      status_template: '{% if(device_state.components.main.airConditionerOptionalMode) != null-%}{{device_state.components.main.airConditionerOptionalMode.acOptionalMode.value}} {%- else -%} Brak {%- endif %}'
+      status_template: '{% if(device_state.components.main["custom.airConditionerOptionalMode"]) != null-%}{{device_state.components.main["custom.airConditionerOptionalMode"].acOptionalMode.value}} {%- else -%} Brak {%- endif %}'
     power:
       type: switch
       connection:
