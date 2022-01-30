@@ -42,9 +42,9 @@ func main() {
 	router := gin.Default()
 	router.GET("/devices/:device/status", status)
 	router.POST("/devices/:device/power", power)
-	router.POST("/devices/:device/ac_mode", ac_mode)
-	router.POST("/devices/:device/fan_mode", fan_mode)
-	router.POST("/devices/:device/fan_oscillation_mode", fan_oscillation_mode)
+	router.POST("/devices/:device/ac_mode", acMode)
+	router.POST("/devices/:device/fan_mode", fanMode)
+	router.POST("/devices/:device/fan_oscillation_mode", fanOscillationMode)
 	router.POST("/devices/:device/volume", volume)
 	router.POST("/devices/:device/preset", preset)
 	router.POST("/devices/:device/temperature", temperature)
@@ -53,7 +53,7 @@ func main() {
 		c.String(200, "alive")
 	})
 
-	router.Run(":8080")
+	_ = router.Run(":8080")
 }
 
 /**
@@ -90,7 +90,7 @@ func power(c *gin.Context) {
 }
 
 //POST /ac_mode
-func ac_mode(c *gin.Context) {
+func acMode(c *gin.Context) {
 	var request in.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -106,7 +106,7 @@ func ac_mode(c *gin.Context) {
 }
 
 //POST /fan_mode
-func fan_mode(c *gin.Context) {
+func fanMode(c *gin.Context) {
 	var request in.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -122,7 +122,7 @@ func fan_mode(c *gin.Context) {
 }
 
 //POST /fan_oscillation_mode
-func fan_oscillation_mode(c *gin.Context) {
+func fanOscillationMode(c *gin.Context) {
 	var request in.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
