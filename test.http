@@ -1,0 +1,13 @@
+### Send POST request with json body
+POST http://192.168.1.4:8888/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/power
+Content-Type: application/json
+
+{
+  "value": "off"
+}
+
+### Send POST request with json body
+GET http://192.168.1.4:8888/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/status
+Content-Type: application/json
+
+

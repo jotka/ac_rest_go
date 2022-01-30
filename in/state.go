@@ -41,9 +41,14 @@ type SupportedAcModes struct {
 	Value     []string  `json:"value"`
 	Timestamp time.Time `json:"timestamp"`
 }
-type AirConditionerMode struct {
+
+type AirConditionerMode_ struct {
 	Value     string    `json:"value"`
 	Timestamp time.Time `json:"timestamp"`
+}
+type AirConditionerMode struct {
+	SupportedAcModes   SupportedAcModes    `json:"supportedAcModes"`
+	AirConditionerMode AirConditionerMode_ `json:"airConditionerMode"`
 }
 type SpiMode struct {
 	Value     string    `json:"value"`
