@@ -59,7 +59,7 @@ func main() {
 	router.POST("/device/:device/ac_mode", ac_mode)
 	router.POST("/device/:device/fan_mode", fan_mode)
 	router.POST("/device/:device/fan_oscillation_mode", fan_oscillation_mode)
-	router.POST("/device/:device/beep", beep)
+	router.POST("/device/:device/volume", volume)
 	router.POST("/device/:device/preset", preset)
 	router.POST("/device/:device/temperature", temperature)
 
@@ -148,15 +148,15 @@ func fan_oscillation_mode(c *gin.Context) {
 	c.JSON(http.StatusOK, state)
 }
 
-//POST /beep
-func beep(c *gin.Context) {
+//POST /volume
+func volume(c *gin.Context) {
 	var request in.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	device := c.Param("device")
-	fmt.Printf("/beep for device %s: %s\n", device, request.Value)
+	fmt.Printf("/volume for device %s: %s\n", device, request.Value)
 	volume, _ := strconv.ParseInt(request.Value, 0, 64)
 	executeCommand(device, "audioVolume", "setVolume", volume)
 	state := getCurrentStatus(device)
