@@ -19,8 +19,8 @@ COPY go.sum ./
 RUN go mod download
 
 COPY *.go ./
-COPY in ./
-COPY out ./
+COPY in ./in
+COPY out ./out
 RUN go build -o /ac-rest
 
 ##
