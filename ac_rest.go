@@ -54,14 +54,14 @@ func main() {
 	updateAllFromCloud(devices)
 
 	router := gin.Default()
-	router.GET("/device/:device/status", status)
-	router.POST("/device/:device/power", power)
-	router.POST("/device/:device/ac_mode", ac_mode)
-	router.POST("/device/:device/fan_mode", fan_mode)
-	router.POST("/device/:device/fan_oscillation_mode", fan_oscillation_mode)
-	router.POST("/device/:device/volume", volume)
-	router.POST("/device/:device/preset", preset)
-	router.POST("/device/:device/temperature", temperature)
+	router.GET("/devices/:device/status", status)
+	router.POST("/devices/:device/power", power)
+	router.POST("/devices/:device/ac_mode", ac_mode)
+	router.POST("/devices/:device/fan_mode", fan_mode)
+	router.POST("/devices/:device/fan_oscillation_mode", fan_oscillation_mode)
+	router.POST("/devices/:device/volume", volume)
+	router.POST("/devices/:device/preset", preset)
+	router.POST("/devices/:device/temperature", temperature)
 
 	router.GET("/health", func(c *gin.Context) {
 		c.String(200, "alive")
