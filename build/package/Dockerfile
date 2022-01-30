@@ -32,16 +32,15 @@ LABEL name="jotka/ac_rest_go" \
 # Stage application
 # -----------------------------------------------------------------------------
 # Agent binaries directory should be set as build context
-COPY ac-rest-go /usr/bin/
+COPY ac-rest /usr/bin/
 
 # -----------------------------------------------------------------------------
 # Provide a non-root user to run the process.
 # -----------------------------------------------------------------------------
 RUN addgroup -g 1001 -S acrestgo && \
     adduser -u 1001 -S acrestgo -G acrestgo && \
-    chown -R 1001:1001 /usr/bin/ac-rest-go && \
-    chmod -R 755 /usr/bin/ac-rest-go && \
-    chmod -R 644 /etc/ac-rest-go
+    chown -R 1001:1001 /usr/bin/ac-rest && \
+    chmod -R 755 /usr/bin/ac-rest
 
 # -----------------------------------------------------------------------------
 # Define execution user
@@ -56,4 +55,4 @@ EXPOSE 8080
 # -----------------------------------------------------------------------------
 # Run container
 # -----------------------------------------------------------------------------
-ENTRYPOINT ["/usr/bin/ac-rest-go"]
+ENTRYPOINT ["/usr/bin/ac-rest"]
