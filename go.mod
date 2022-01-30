@@ -2,7 +2,10 @@ module ac_rest_go
 
 go 1.17
 
-require github.com/gin-gonic/gin v1.7.7
+require (
+	github.com/gin-gonic/gin v1.7.7
+	github.com/robfig/cron v1.2.0
+)
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect

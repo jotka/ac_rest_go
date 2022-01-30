@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -29,14 +31,25 @@ var currentStatus map[string]in.State
 
 var apiUrl string
 var apiToken string
+var devices []string
 var httpClient = &http.Client{Timeout: 10 * time.Second}
 
 func main() {
 	apiUrl = os.Getenv("API_URL")
 	apiToken = os.Getenv("API_TOKEN")
+	devices = strings.Split(os.Getenv("DEVICES"), ",") //all devices, comma separated
+	currentStatus = make(map[string]in.State)
+
+	//update all periodically
+	cron := cron.New()
+	cron.AddFunc("*/60 * * * * *", func() {
+		updateAllFromCloud(devices)
+	})
+	cron.Start()
 
 	fmt.Printf("ac_rest_go started with API URL %s\n", apiUrl)
-	currentStatus = make(map[string]in.State)
+	updateAllFromCloud(devices)
+
 	router := gin.Default()
 	router.GET("/device/:device/status", status)
 	router.POST("/device/:device/power", power)
@@ -46,6 +59,15 @@ func main() {
 	})
 
 	router.Run(":8080")
+}
+
+/**
+ * Updates all devices from DEVICES env variable (comma separated)
+ */
+func updateAllFromCloud(devices []string) {
+	for _, singleDevice := range devices {
+		updateStatusFromCloud(singleDevice)
+	}
 }
 
 //GET /status
