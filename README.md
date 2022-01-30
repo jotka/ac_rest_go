@@ -17,7 +17,7 @@ It will refresh the status from the Samsung Cloud periodically also (once per mi
 ## configuration
 
 Expects ENV variables:
-* DEVICES comma separated list of devices to refresh status periodically.
+* DEVICES comma separated list of your devices, use https://api.smartthings.com/v1/devices/ to get them
 * API_TOKEN your Samsung API token with "Bearer: " prefix.
 * API_URL https://api.smartthings.com/v1/devices/
 
@@ -53,21 +53,18 @@ POST /devices/{device}/temperature  {"value": 21}
 POST /devices/{device}/ac_mode  {"value": "cool"}
 ```
 
-## running
-Can be run in Docker, for example:
+## running in Docker
 
 ```bash
-docker run \
-    -d \
-    --name=acrest \
-    --restart=unless-stopped \
-    --env=DEVICES="edf3d10c-redacted-fb7f-redacted,redacted-e88e-redcated,9d8f6a8c-redacted-ed416e8b3fd1,redacted9e7c-ad8a-redacted" \
-    --env=API_TOKEN="Bearer: xxx-yyy" \
-    --env=API_URL="https://api.smartthings.com/v1/devices/" \
-    --network=bridge \
-    -p 8080:8080 \
-    --memory=200m \
-    ac-rest:latest
+docker run --name=acrest \
+--env=API_URL=https://api.smartthings.com/v1/devices/ \
+--env=DEVICES=edf3d10c-0c57-fb7f-removed,removed-e88e-a7f13bb87e3b,removed-b03f-ed416e8b3fd1,837249dd-9e7c-ad8a-removed-6b8cf5da271b \
+--env=GIN_MODE=release \
+--env='API_TOKEN=Bearer: your_smartthings_token_here' \
+--network=bridge \
+-p 8888:8080 \
+--restart=unless-stopped \
+--detach=true jotka/ac-rest:latest
 ```
 Having this running, you can use the https://github.com/SebuZet/samsungrac to configure the IP climate setup in Home Assistant.
 See `home_assistant/climate_ip/smartthings.yaml` as an example configuration file for https://github.com/SebuZet/samsungrac to use with ac-rest.
@@ -80,22 +77,4 @@ go build -v -o build/package/ac-rest
 ## Docker image build
 ```bash
 docker build . -t jotka/ac-rest
-```
-## expected ENV variables
-- API_URL Samsung Smartthins API url, https://api.smartthings.com/v1/devices/
-- DEVICES comma separated list of your devices, use https://api.smartthings.com/v1/devices/ to get them
-- API_TOKEN your Smartthings token
-
-## running with Docker
-
-```bash
-docker run --name=acrest \
---env=API_URL=https://api.smartthings.com/v1/devices/ \
---env=DEVICES=edf3d10c-0c57-fb7f-removed,removed-e88e-a7f13bb87e3b,removed-b03f-ed416e8b3fd1,837249dd-9e7c-ad8a-removed-6b8cf5da271b \
---env=GIN_MODE=release \
---env='API_TOKEN=Bearer: your_smartthings_token_here' \
---network=bridge \
--p 8888:8080 \
---restart=unless-stopped \
---detach=true jotka/ac-rest:latest
 ```
