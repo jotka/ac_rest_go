@@ -77,8 +77,25 @@ See `home_assistant/climate_ip/smartthings.yaml` as an example configuration fil
 go build -v -o build/package/ac-rest
 ```
 
-
 ## Docker image build
 ```bash
 docker build . -t jotka/ac-rest
+```
+## expected ENV variables
+- API_URL Samsung Smartthins API url, https://api.smartthings.com/v1/devices/
+- DEVICES comma separated list of your devices, use https://api.smartthings.com/v1/devices/ to get them
+- API_TOKEN your Smartthings token
+
+## running with Docker
+
+```bash
+docker run --name=acrest \
+--env=API_URL=https://api.smartthings.com/v1/devices/ \
+--env=DEVICES=edf3d10c-0c57-fb7f-removed,removed-e88e-a7f13bb87e3b,removed-b03f-ed416e8b3fd1,837249dd-9e7c-ad8a-removed-6b8cf5da271b \
+--env=GIN_MODE=release \
+--env='API_TOKEN=Bearer: your_smartthings_token_here' \
+--network=bridge \
+-p 8888:8080 \
+--restart=unless-stopped \
+--detach=true jotka/ac-rest:latest
 ```
