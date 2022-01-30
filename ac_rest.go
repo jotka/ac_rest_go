@@ -2,7 +2,6 @@ package main
 
 import (
 	"ac_rest_go/in"
-	"ac_rest_go/out"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -26,7 +25,7 @@ type Login struct {
 	Password string `form:"password" json:"password" xml:"password" binding:"required"`
 }
 
-var currentStatus map[string]out.State
+var currentStatus map[string]in.State
 
 var apiUrl string
 var apiToken string
@@ -37,7 +36,7 @@ func main() {
 	apiToken = os.Getenv("API_TOKEN")
 
 	fmt.Printf("ac_rest_go started with API URL %s\n", apiUrl)
-	currentStatus = make(map[string]out.State)
+	currentStatus = make(map[string]in.State)
 	router := gin.Default()
 	router.GET("/device/:device/status", status)
 	router.POST("/device/:device/power", power)
@@ -83,7 +82,7 @@ func ac_mode(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "power"})
 }
 
-func getCurrentStatus(device string) out.State {
+func getCurrentStatus(device string) in.State {
 	if deviceStatus, found := currentStatus[device]; found {
 		return deviceStatus
 	} else {
@@ -92,24 +91,34 @@ func getCurrentStatus(device string) out.State {
 	}
 }
 
-func getJson(url string, target interface{}) {
-	req, err := http.NewRequest("GET", url, nil)
+/**
+Updates the device state from cloud and keeps it in cache
+*/
+func updateStatusFromCloud(device string) in.State {
+	currentStatus[device] = *getStateFromCloud(device)
+	return currentStatus[device]
+}
+
+/**
+gets the device state from Samsung cloud API
+*/
+func getStateFromCloud(device string) *in.State {
+	req, err := http.NewRequest("GET", apiUrl+device, nil)
 	req.Header.Add("Authorization", apiToken)
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		fmt.Printf("No response from request %s/n", url)
+		fmt.Printf("No response from request %s\n", apiUrl+device)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	if err := json.Unmarshal(body, target); err != nil {
-		fmt.Printf("Can not unmarshal JSON from %s/n", url)
+	samsungResponse := new(in.State)
+	if err := json.Unmarshal(body, &samsungResponse); err != nil {
+		if jsonErr, ok := err.(*json.SyntaxError); ok {
+			problemPart := body[jsonErr.Offset-10 : jsonErr.Offset+10]
+			err = fmt.Errorf("%w ~ error near '%s' (offset %d)", err, problemPart, jsonErr.Offset)
+		}
 	}
-}
-
-func updateStatusFromCloud(device string) out.State {
-	samsungResponse := new(out.State)
-	getJson(apiUrl+"/"+device, *samsungResponse)
-	currentStatus[device] = *samsungResponse
-	return *samsungResponse
+	fmt.Printf("Device state updated from cloud: %s (%s, %s)\n", device, samsungResponse.DeviceTypeName, samsungResponse.Label)
+	return samsungResponse
 }
