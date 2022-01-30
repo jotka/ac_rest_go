@@ -1,0 +1,27 @@
+- platform: climate_ip
+  config_file: 'smartthings.yaml'
+  name: 'air_conditioner_1'
+  ip_address: '192.168.1.4:8888'
+  device_id: 'removed9035-6b8cf5da271b'
+  debug: false
+
+- platform: climate_ip
+  config_file: 'smartthings.yaml'
+  name: 'air_conditioner_2'
+  ip_address: '192.168.1.4:8888'
+  device_id: '9d8f6a8c-816d-9bfe-b03f-removed'
+  debug: false
+
+- platform: climate_ip
+  config_file: 'smartthings.yaml'
+  name: 'air_conditioner_3'
+  ip_address: '192.168.1.4:8888'
+  device_id: 'removed88e-a7f13bb87e3b'
+  debug: false
+
+- platform: climate_ip
+  config_file: 'smartthings.yaml'
+  name: 'air_conditioner_4'
+  ip_address: '192.168.1.4:8888'
+  device_id: 'edf3d10c-0c57-fbremoved3a2974d09'
+  debug: false

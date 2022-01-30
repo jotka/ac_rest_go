@@ -67,7 +67,8 @@ docker run --name=acrest \
 --detach=true jotka/ac-rest:latest
 ```
 Having this running, you can use the https://github.com/SebuZet/samsungrac to configure the IP climate setup in Home Assistant.
-See `home_assistant/climate_ip/smartthings.yaml` as an example configuration file for https://github.com/SebuZet/samsungrac to use with ac-rest.
+See `home_assistant/` as an example configuration with https://github.com/SebuZet/samsungrac custom component.
+`climate_ip/smartthings.yaml` contains the template for ac-rest middleware.
 
 ## building locally
 ```bash

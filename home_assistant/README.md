@@ -1,4 +1,4 @@
-# HomeAssistant custom component
+# sample HomeAssistant configuration with custom component from https://github.com/SebuZet/samsungrac
 
 ## usage
 place in your home_assistant/custom_components directory
