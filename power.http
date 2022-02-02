@@ -1,8 +1,8 @@
-GET http://localhost:8080/device/837249dd-9e7c-ad8a-9035-6b8cf5da271b/status
+GET http://localhost:8080/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/status
 
 ###
 
-POST http://localhost:8080/device/837249dd-9e7c-ad8a-9035-6b8cf5da271b/power
+POST http://localhost:8080/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/power
 Content-Type: application/json
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:8080/device/837249dd-9e7c-ad8a-9035-6b8cf5da271b/power
+POST http://localhost:8080/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/power
 Content-Type: application/json
 
 {
@@ -20,7 +20,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:8080/device/837249dd-9e7c-ad8a-9035-6b8cf5da271b/volume
+POST http://localhost:8080/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/volume
 Content-Type: application/json
 
 {
@@ -29,7 +29,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:8080/device/837249dd-9e7c-ad8a-9035-6b8cf5da271b/temperature
+POST http://localhost:8080/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/temperature
 Content-Type: application/json
 
 {
@@ -38,7 +38,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:8080/device/837249dd-9e7c-ad8a-9035-6b8cf5da271b/ac_mode
+POST http://localhost:8080/devices/837249dd-9e7c-ad8a-9035-6b8cf5da271b/ac_mode
 Content-Type: application/json
 
 {
