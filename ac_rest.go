@@ -80,20 +80,22 @@ func power(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	device := c.Param("device")
-	fmt.Printf("/power for device %s: %s\n", device, request.Value)
-	executeCommand(device, "switch", request.Value, nil)
-	state := getCurrentStatus(device)
-	state.Components.Main.Switch.Switch.Value = request.Value
-	currentStatus[device] = state
-	c.JSON(http.StatusOK, state)
+	state, device, _, err := processRequest(c, "switch", request.Value)
+	if err != nil {
+		state.Components.Main.Switch.Switch.Value = request.Value
+		currentStatus[device] = state
+		c.JSON(http.StatusOK, state)
+	} else {
+		c.JSON(http.StatusBadRequest, err)
+	}
 }
 
 //POST /temperature
 func temperature(c *gin.Context) {
 	state, device, param, err := processRequest(c, "thermostatCoolingSetpoint", "setCoolingSetpoint")
 	if err != nil {
-		state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = param //update the cache
+		temp, _ := strconv.ParseFloat(param, 64)
+		state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = temp //update the cache
 		currentStatus[device] = state
 		c.JSON(http.StatusOK, state)
 	} else {
@@ -141,7 +143,8 @@ func fanOscillationMode(c *gin.Context) {
 func volume(c *gin.Context) {
 	state, device, param, err := processRequest(c, "audioVolume", "setVolume")
 	if err != nil {
-		state.Components.Main.AudioVolume.Volume.Value = param //update the cache
+		volume, _ := strconv.Atoi(param)
+		state.Components.Main.AudioVolume.Volume.Value = volume //update the cache
 		currentStatus[device] = state
 		c.JSON(http.StatusOK, state)
 	} else {
@@ -178,7 +181,7 @@ func processRequest(c *gin.Context, capability string, command string) (in.State
 /**
  * get the device status from cache. If not found, refresh from Samsung SmartThings cloud
  */
-func getCurrentStatus(device string) *in.State {
+func getCurrentStatus(device string) in.State {
 	if deviceStatus, found := currentStatus[device]; found {
 		fmt.Printf("State for %s, found in cache.\n", device)
 		return deviceStatus
@@ -209,9 +212,9 @@ func updateStatusFromCloud(device string) in.State {
 		}
 	}
 	fmt.Printf("Device state updated from cloud: %s\n", device)
-	currentStatus[device] = samsungResponse
+	currentStatus[device] = *samsungResponse
 
-	return samsungResponse, err
+	return *samsungResponse
 }
 
 /**
