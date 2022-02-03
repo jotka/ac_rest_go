@@ -1,9 +1,17 @@
 package in
 
 type SamsungResponse struct {
-	Results []Results `json:"results"`
+	RequestID string `json:"requestId"`
+	Error     *Error `json:"error"`
 }
-type Results struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
+type Details struct {
+	Code    string        `json:"code"`
+	Target  string        `json:"target"`
+	Message string        `json:"message"`
+	Details []interface{} `json:"details"`
+}
+type Error struct {
+	Code    string    `json:"code"`
+	Message string    `json:"message"`
+	Details []Details `json:"details"`
 }
