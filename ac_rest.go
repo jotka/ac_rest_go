@@ -107,7 +107,7 @@ func temperature(c *gin.Context) {
 		return
 	} else {
 		state := getCurrentStatus(device)
-		state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value, _ = strconv.ParseFloat(param, 64) //update the cache
+		state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = desiredTemp //update the cache
 		currentStatus[device] = state
 		c.JSON(http.StatusOK, response)
 	}
@@ -184,7 +184,7 @@ func volume(c *gin.Context) {
 		return
 	} else {
 		state := getCurrentStatus(device)
-		state.Components.Main.AudioVolume.Volume.Value, _ = strconv.Atoi(param) //update the cache
+		state.Components.Main.AudioVolume.Volume.Value = volume
 		currentStatus[device] = state
 		c.JSON(http.StatusOK, response)
 	}
