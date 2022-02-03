@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -88,13 +89,13 @@ func power(c *gin.Context) {
 
 //POST /temperature
 func temperature(c *gin.Context) {
-	response, device, param, err := executeCommand(c, "thermostatCoolingSetpoint", "setCoolingSetpoint")
+	device, param, response, err := executeCommand(c, "thermostatCoolingSetpoint", "setCoolingSetpoint")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	} else {
 		state := getCurrentStatus(device)
-		state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = param //update the cache
+		state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value, _ = strconv.ParseFloat(param, 64) //update the cache
 		currentStatus[device] = state
 		c.JSON(http.StatusOK, response)
 	}
@@ -150,7 +151,7 @@ func volume(c *gin.Context) {
 		return
 	} else {
 		state := getCurrentStatus(device)
-		state.Components.Main.AudioVolume.Volume.Value = volume //update the cache
+		state.Components.Main.AudioVolume.Volume.Value, _ = strconv.Atoi(volume) //update the cache
 		currentStatus[device] = state
 		c.JSON(http.StatusOK, response)
 	}
@@ -170,10 +171,10 @@ func preset(c *gin.Context) {
 	}
 }
 
-func parseRequest(c *gin.Context) (string, interface{}, error) {
+func parseRequest(c *gin.Context) (string, string, error) {
 	var request in.Request
 	if err := c.ShouldBindJSON(&request); err != nil {
-		return "", nil, err
+		return "", "", err
 	}
 	device := c.Param("device")
 	param := request.Value
@@ -222,16 +223,16 @@ func updateStatusFromCloud(device string) in.State {
 /**
  * POST a command do Samsung SmartThings cloud
  */
-func executeCommand(c *gin.Context, capability string, command string) (string, interface{}, *in.SamsungResponse, error) {
+func executeCommand(c *gin.Context, capability string, command string) (string, string, *in.SamsungResponse, error) {
 	device, param, err := parseRequest(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return "", nil, nil, err
+		return "", "", nil, err
 	}
 
 	fmt.Printf("capability: %s, command %s, device %s: %s\n", capability, command, device, param)
 	cmd := out.Command{Component: "main", Capability: capability, Command: command}
-	if param != nil {
+	if param != "" {
 		cmd.Arguments = append(cmd.Arguments, param)
 	}
 	var samsungCmd out.SamsungCommand
@@ -242,7 +243,7 @@ func executeCommand(c *gin.Context, capability string, command string) (string, 
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return "", nil, nil, fmt.Errorf("No response from request %s\n", apiUrl+device)
+		return "", "", nil, fmt.Errorf("No response from request %s\n", apiUrl+device)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -251,7 +252,7 @@ func executeCommand(c *gin.Context, capability string, command string) (string, 
 		if jsonErr, ok := err.(*json.SyntaxError); ok {
 			problemPart := body[jsonErr.Offset-10 : jsonErr.Offset+10]
 			err = fmt.Errorf("%w ~ error near '%s' (offset %d)", err, problemPart, jsonErr.Offset)
-			return "", nil, nil, err
+			return "", "", nil, err
 		}
 	}
 	return device, param, samsungResponse, nil
