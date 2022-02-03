@@ -5,6 +5,7 @@ import (
 	"ac_rest_go/out"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron"
@@ -254,6 +255,9 @@ func executeCommand(c *gin.Context, capability string, command string) (string, 
 			err = fmt.Errorf("%w ~ error near '%s' (offset %d)", err, problemPart, jsonErr.Offset)
 			return "", "", nil, err
 		}
+	}
+	if samsungResponse.Error != nil {
+		return "", "", nil, errors.New(samsungResponse.Error.Message)
 	}
 	return device, param, samsungResponse, nil
 }
