@@ -41,6 +41,9 @@ func main() {
 	updateAllFromCloud(devices)
 
 	router := gin.Default()
+	router.Static("/js", "./templates/js")
+	router.Static("/css", "./templates/css")
+	router.LoadHTMLGlob("templates/*.tmpl")
 	router.GET("/devices/:device/status", status)
 	router.POST("/devices/:device/power", power)
 	router.POST("/devices/:device/ac_mode", acMode)
@@ -49,6 +52,11 @@ func main() {
 	router.POST("/devices/:device/volume", volume)
 	router.POST("/devices/:device/preset", preset)
 	router.POST("/devices/:device/temperature", temperature)
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"data": currentStatus,
+		})
+	})
 
 	router.GET("/health", func(c *gin.Context) {
 		c.String(200, "alive")
