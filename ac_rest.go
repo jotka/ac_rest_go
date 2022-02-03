@@ -62,7 +62,12 @@ func main() {
  */
 func updateAllFromCloud(devices []string) {
 	for _, singleDevice := range devices {
-		updateStatusFromCloud(singleDevice)
+		state, err := getStatusFromCloud(singleDevice)
+		if err != nil {
+			fmt.Printf("Error updating %s from the cloud: %s\n", singleDevice, err.Error())
+		} else {
+			currentStatus[singleDevice] = *state
+		}
 	}
 }
 
@@ -70,8 +75,12 @@ func updateAllFromCloud(devices []string) {
 func status(c *gin.Context) {
 	device := c.Param("device")
 	fmt.Printf("/status for device %s\n", device)
-	state := getCurrentStatus(device)
-	c.JSON(http.StatusOK, state)
+	state, err := getCurrentStatus(device)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
+	} else {
+		c.JSON(http.StatusOK, state)
+	}
 }
 
 //POST /power
@@ -86,10 +95,14 @@ func power(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	} else {
-		state := getCurrentStatus(device)
-		state.Components.Main.Switch.Switch.Value = param
-		currentStatus[device] = state
-		c.JSON(http.StatusOK, response)
+		state, err := getCurrentStatus(device)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		} else {
+			state.Components.Main.Switch.Switch.Value = param
+			currentStatus[device] = *state
+			c.JSON(http.StatusOK, response)
+		}
 	}
 }
 
@@ -106,10 +119,14 @@ func temperature(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	} else {
-		state := getCurrentStatus(device)
-		state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = desiredTemp //update the cache
-		currentStatus[device] = state
-		c.JSON(http.StatusOK, response)
+		state, err := getCurrentStatus(device)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		} else {
+			state.Components.Main.ThermostatCoolingSetpoint.CoolingSetpoint.Value = desiredTemp //update the cache
+			currentStatus[device] = *state
+			c.JSON(http.StatusOK, response)
+		}
 	}
 }
 
@@ -125,10 +142,15 @@ func acMode(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	} else {
-		state := getCurrentStatus(device)
-		state.Components.Main.AirConditionerMode.AirConditionerMode.Value = param
-		currentStatus[device] = state
-		c.JSON(http.StatusOK, response)
+		state, err := getCurrentStatus(device)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		} else {
+			state.Components.Main.AirConditionerMode.AirConditionerMode.Value = param
+			currentStatus[device] = *state
+			c.JSON(http.StatusOK, response)
+		}
+
 	}
 }
 
@@ -144,10 +166,14 @@ func fanMode(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	} else {
-		state := getCurrentStatus(device)
-		state.Components.Main.AirConditionerFanMode.FanMode.Value = param //update the cache
-		currentStatus[device] = state
-		c.JSON(http.StatusOK, response)
+		state, err := getCurrentStatus(device)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		} else {
+			state.Components.Main.AirConditionerFanMode.FanMode.Value = param //update the cache
+			currentStatus[device] = *state
+			c.JSON(http.StatusOK, response)
+		}
 	}
 }
 
@@ -163,10 +189,14 @@ func fanOscillationMode(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	} else {
-		state := getCurrentStatus(device)
-		state.Components.Main.FanOscillationMode.FanOscillationMode.Value = param //update the cache
-		currentStatus[device] = state
-		c.JSON(http.StatusOK, response)
+		state, err := getCurrentStatus(device)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		} else {
+			state.Components.Main.FanOscillationMode.FanOscillationMode.Value = param //update the cache
+			currentStatus[device] = *state
+			c.JSON(http.StatusOK, response)
+		}
 	}
 }
 
@@ -183,10 +213,14 @@ func volume(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	} else {
-		state := getCurrentStatus(device)
-		state.Components.Main.AudioVolume.Volume.Value = volume
-		currentStatus[device] = state
-		c.JSON(http.StatusOK, response)
+		state, err := getCurrentStatus(device)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		} else {
+			state.Components.Main.AudioVolume.Volume.Value = volume
+			currentStatus[device] = *state
+			c.JSON(http.StatusOK, response)
+		}
 	}
 }
 
@@ -202,10 +236,14 @@ func preset(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	} else {
-		state := getCurrentStatus(device)
-		state.Components.Main.CustomAirConditionerOptionalMode.AcOptionalMode.Value = param //update the cache
-		currentStatus[device] = state
-		c.JSON(http.StatusOK, response)
+		state, err := getCurrentStatus(device)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err)
+		} else {
+			state.Components.Main.CustomAirConditionerOptionalMode.AcOptionalMode.Value = param //update the cache
+			currentStatus[device] = *state
+			c.JSON(http.StatusOK, response)
+		}
 	}
 }
 
@@ -222,20 +260,20 @@ func parseRequest(c *gin.Context) (string, string, error) {
 /**
  * get the device status from cache. If not found, refresh from Samsung SmartThings cloud
  */
-func getCurrentStatus(device string) in.State {
+func getCurrentStatus(device string) (*in.State, error) {
 	if deviceStatus, found := currentStatus[device]; found {
 		fmt.Printf("State for %s, found in cache.\n", device)
-		return deviceStatus
+		return &deviceStatus, nil
 	} else {
 		fmt.Printf("No current state for %s, updating from the cloud.\n", device)
-		return updateStatusFromCloud(device)
+		return getStatusFromCloud(device)
 	}
 }
 
 /**
 * GETs the device state from Samsung SmartThings cloud API
  */
-func updateStatusFromCloud(device string) in.State {
+func getStatusFromCloud(device string) (*in.State, error) {
 	req, err := http.NewRequest("GET", apiUrl+device+"/status", nil)
 	req.Header.Add("Authorization", apiToken)
 	req.Header.Add("Content-Type", "application/json")
@@ -245,24 +283,23 @@ func updateStatusFromCloud(device string) in.State {
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	samsungResponse := new(in.State)
-	if err := json.Unmarshal(body, &samsungResponse); err != nil {
-		if jsonErr, ok := err.(*json.SyntaxError); ok {
-			problemPart := body[jsonErr.Offset-10 : jsonErr.Offset+10]
-			err = fmt.Errorf("%w ~ error near '%s' (offset %d)", err, problemPart, jsonErr.Offset)
+	if err != nil {
+		return nil, err
+	} else {
+		samsungResponse := new(in.State)
+		err := json.Unmarshal(body, &samsungResponse)
+		if err != nil {
+			return nil, err
 		}
+		fmt.Printf("Device state updated from cloud: %s\n", device)
+		return samsungResponse, nil
 	}
-	fmt.Printf("Device state updated from cloud: %s\n", device)
-	currentStatus[device] = *samsungResponse
-
-	return *samsungResponse
 }
 
 /**
  * POST a command do Samsung SmartThings cloud
  */
 func executeCommand(device string, capability string, command string, param interface{}) (*in.SamsungResponse, error) {
-
 	fmt.Printf("capability: %s, command %s, device %s: %s\n", capability, command, device, param)
 	cmd := out.Command{Component: "main", Capability: capability, Command: command}
 	if param != "" {
