@@ -26,10 +26,10 @@ RUN go build -o /ac-rest
 ##
 ## Deploy
 ##
-FROM scratch
+FROM gcr.io/distroless/base-debian10
 WORKDIR /
 COPY --from=build /ac-rest /ac-rest
-EXPOSE 8080
 USER nonroot:nonroot
+EXPOSE 8080
 ENTRYPOINT ["/ac-rest"]
 
