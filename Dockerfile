@@ -21,6 +21,7 @@ RUN go mod download
 COPY *.go ./
 COPY in ./in
 COPY out ./out
+COPY templates ./templates
 RUN go build -o /ac-rest
 
 ##
