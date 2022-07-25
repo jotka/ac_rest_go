@@ -158,7 +158,6 @@ func acMode(c *gin.Context) {
 			currentStatus[device] = *state
 			c.JSON(http.StatusOK, response)
 		}
-
 	}
 }
 
@@ -296,6 +295,9 @@ func getStatusFromCloud(device string) (*in.State, error) {
 	} else {
 		samsungResponse := new(in.State)
 		err := json.Unmarshal(body, &samsungResponse)
+		if samsungResponse.Components.Main.AirConditionerMode.AirConditionerMode.Value == "aIComfort" {
+			samsungResponse.Components.Main.AirConditionerMode.AirConditionerMode.Value = "auto"
+		}
 		if err != nil {
 			return nil, err
 		}
